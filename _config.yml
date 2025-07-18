@@ -1,6 +1,8 @@
-remote_theme: pages-themes/midnight@v0.2.0
-plugins:
-- jekyll-remote-theme 
-title: NCSutcliffe Blog
-tagline: [A Cyber Product Owner's Blog]
-description: [A Cyber Product Owner's Blog focussing on Cyber Security, AI and Product Ownership]
+theme: minima
+title: "NCSutcliffe's personal blog"
+tagline: [A Cyber Product Owners Blog]
+description: [A Cyber Product Owners Blog focussing on Cyber Security, AI and Product Ownership]
+
+
+
+
