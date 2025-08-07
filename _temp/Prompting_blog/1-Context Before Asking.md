@@ -27,3 +27,14 @@ By simply adding this upfront context, you’ll notice:
 ---
 
 **Image prompt**: AI assistant, modern office setting, realistic, DSLR, high-contrast with slight vignette
+
+
+-----
+
+**About the series**
+
+🔒 About the Secure by Prompt Series
+Secure by Prompt is a 10-part blog series designed to demystify the use of generative AI in security operations—specifically how to harness large language models (LLMs) like Microsoft Security Copilot through effective prompt engineering.
+Across this series, we move from foundational prompting techniques to sophisticated “mega prompts” that streamline threat detection, investigation, and data protection. The first half focuses on real-world Defender XDR scenarios, while the second explores Microsoft Purview, Intune, and Identity use cases. Each post is rich in technical detail but accessible to security practitioners at any level—designed to help you unlock AI safely, responsibly, and with purpose.
+
+This is your hands-on guide to mastering security prompt engineering—making AI not just useful, but secure by default.
