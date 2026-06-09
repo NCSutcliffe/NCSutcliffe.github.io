@@ -1,0 +1,643 @@
+---
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Periodic Table of Microsoft Defender</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0A0D14; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+
+    const { useState, useMemo } = React;
+
+// ─── License tiers (m365maps hierarchy) ──────────────────────────────────────
+// EOP < MDB < MDE-P1 < MDO-P1 < MDE-P2 < MDO-P2 < Defender Suite (E5-equiv)
+// Plus: DVM-Core (included in MDE-P2), DVM-Premium (add-on), MDA (standalone/E5)
+
+const TIERS = {
+  EOP:        { label: "EOP",           color: "#6B7280", desc: "Exchange Online Protection (all M365)" },
+  MDB:        { label: "MDB",           color: "#94A3B8", desc: "Defender for Business / Business Premium" },
+  MDE_P1:     { label: "MDE P1",        color: "#4EB672", desc: "Defender for Endpoint Plan 1" },
+  MDO_P1:     { label: "MDO P1",        color: "#27A49D", desc: "Defender for Office 365 Plan 1" },
+  MDE_P2:     { label: "MDE P2",        color: "#1573E6", desc: "Defender for Endpoint Plan 2" },
+  MDO_P2:     { label: "MDO P2",        color: "#0EA5E9", desc: "Defender for Office 365 Plan 2" },
+  MDI:        { label: "MDI",           color: "#8B5CF6", desc: "Defender for Identity (standalone/E5)" },
+  MDA:        { label: "MDA",           color: "#EC4899", desc: "Defender for Cloud Apps (standalone/E5)" },
+  DVM_CORE:   { label: "DVM Core",      color: "#F59E0B", desc: "Defender Vulnerability Mgmt – Core (in MDE P2)" },
+  DVM_PREM:   { label: "DVM Premium",   color: "#EF4444", desc: "Defender Vulnerability Mgmt – Premium (add-on)" },
+  SUITE:      { label: "Defender Suite",color: "#FF6B35", desc: "Microsoft Defender Suite for Enterprise (E5-equiv)" },
+};
+
+// ─── Product groups ───────────────────────────────────────────────────────────
+const GROUPS = {
+  mde:    { label: "Defender for Endpoint",    color: "#1573E6" },
+  mdo:    { label: "Defender for Office 365",  color: "#27A49D" },
+  mdi:    { label: "Defender for Identity",    color: "#8B5CF6" },
+  mda:    { label: "Defender for Cloud Apps",  color: "#EC4899" },
+  dvm:    { label: "Vulnerability Management", color: "#F59E0B" },
+  xdr:    { label: "XDR / Cross-Workload",     color: "#FF6B35" },
+};
+
+// ─── Elements (sourced from m365maps.com) ────────────────────────────────────
+// row/col define layout; tier is the minimum licensing requirement
+const ELEMENTS = [
+  // ── MDE row ─────────────────────────────────────────────────────────────────
+  { num:1,  sym:"NGP",  name:"Next-Gen Protection",          group:"mde", tier:"MDE_P1", row:1, col:1,
+    desc:"Next-generation antivirus engine covering behaviour-based, heuristic, and real-time protection. Foundation of all Defender for Endpoint plans.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/next-generation-protection" },
+  { num:2,  sym:"ASR",  name:"Attack Surface Reduction",     group:"mde", tier:"MDE_P1", row:1, col:2,
+    desc:"Rules-based OS hardening blocking Office macro abuse, credential theft, script execution, and PUA. Enhanced ruleset included in MDE P1.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/overview-attack-surface-reduction" },
+  { num:3,  sym:"TP",   name:"Tamper Protection",            group:"mde", tier:"MDE_P1", row:1, col:3,
+    desc:"Locks Defender security settings against local modification by malware or non-privileged users. Managed via Intune or MDE.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/prevent-changes-to-security-settings-with-tamper-protection" },
+  { num:4,  sym:"BFS",  name:"Block at First Sight",         group:"mde", tier:"MDE_P1", row:1, col:4,
+    desc:"Cloud-delivered protection that analyses new files in near-real-time before allowing execution. Uses Microsoft's cloud intelligence network.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/configure-block-at-first-sight-microsoft-defender-antivirus" },
+  { num:5,  sym:"WCF",  name:"Web Content Filtering",        group:"mde", tier:"MDE_P1", row:1, col:5,
+    desc:"Category-based web blocking enforced at the device level. Does not require a proxy — works via SmartScreen integration.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/web-content-filtering" },
+  { num:6,  sym:"XPS",  name:"Cross-Platform Support",       group:"mde", tier:"MDE_P1", row:1, col:6,
+    desc:"MDE agent coverage for Windows, macOS, Linux, iOS, and Android. Full EDR capabilities vary by OS.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/microsoft-defender-endpoint" },
+  { num:7,  sym:"MRA",  name:"Manual Response Actions",      group:"mde", tier:"MDE_P1", row:1, col:7,
+    desc:"Analyst-initiated actions: isolate device, collect investigation package, run antivirus scan, restrict app execution.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/defender-endpoint-plan-1#manual-response-actions" },
+  { num:8,  sym:"MTD",  name:"Mobile Threat Defence",        group:"mde", tier:"MDE_P1", row:1, col:8,
+    desc:"iOS and Android threat protection: malicious URL blocking, network protection, jailbreak/root detection, anti-phishing.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/mtd" },
+
+  // ── MDE P2 row ───────────────────────────────────────────────────────────────
+  { num:9,  sym:"EDR",  name:"Endpoint Detection & Response",group:"mde", tier:"MDE_P2", row:2, col:1,
+    desc:"Full EDR capability: behavioural sensors, attack timelines, threat hunting telemetry, and custom detections. Core of MDE P2.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/overview-endpoint-detection-response" },
+  { num:10, sym:"AHT",  name:"Advanced Hunting",             group:"mde", tier:"MDE_P2", row:2, col:2,
+    desc:"KQL-based hunting across 30 days of raw endpoint, identity, email, and app telemetry. Build and schedule custom detection queries.",
+    docsUrl:"https://learn.microsoft.com/defender-xdr/advanced-hunting-overview" },
+  { num:11, sym:"AIR",  name:"Automated Investigations",     group:"mde", tier:"MDE_P2", row:2, col:3,
+    desc:"Automated Investigation & Response playbooks triggered on alerts. Scopes blast radius and recommends or takes remediation actions.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/automated-investigations" },
+  { num:12, sym:"THA",  name:"Threat Analytics",             group:"mde", tier:"MDE_P2", row:2, col:4,
+    desc:"Curated threat intelligence reports mapped against your org's exposure. Tracks active threat actors, CVEs, and campaigns in context.",
+    docsUrl:"https://learn.microsoft.com/defender-xdr/threat-analytics" },
+  { num:13, sym:"6MD",  name:"6-Month Data Retention",       group:"mde", tier:"MDE_P2", row:2, col:5,
+    desc:"Six months of searchable telemetry data for hunting and investigation. MDE P1 does not include extended retention.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/data-storage-privacy#how-long-will-microsoft-store-my-data-what-is-microsofts-data-retention-policy" },
+  { num:14, sym:"MCI",  name:"MDA Integration",              group:"mde", tier:"MDE_P2", row:2, col:6,
+    desc:"Native integration between MDE and Defender for Cloud Apps, enabling cloud app discovery from endpoint telemetry and session controls.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/microsoft-cloud-app-security-integration" },
+  { num:15, sym:"EVL",  name:"Evaluation Lab",               group:"mde", tier:"MDE_P2", row:2, col:7,
+    desc:"Isolated test environment to evaluate MDE capabilities against real-world simulated attacks without impacting production.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/evaluate-microsoft-defender-antivirus" },
+
+  // ── MDO row ──────────────────────────────────────────────────────────────────
+  { num:16, sym:"EOP",  name:"Exchange Online Protection",   group:"mdo", tier:"EOP",    row:3, col:1,
+    desc:"Baseline email protection included with all Exchange Online plans. Anti-spam, anti-malware, and basic anti-phishing policies.",
+    docsUrl:"https://learn.microsoft.com/office365/servicedescriptions/exchange-online-protection-service-description/exchange-online-protection-service-description" },
+  { num:17, sym:"SLK",  name:"Safe Links",                   group:"mdo", tier:"MDO_P1", row:3, col:2,
+    desc:"Time-of-click URL verification for emails and Office documents. Rewrites links and checks reputation at click time, not delivery.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/safe-links-about" },
+  { num:18, sym:"SAT",  name:"Safe Attachments",             group:"mdo", tier:"MDO_P1", row:3, col:3,
+    desc:"Detonates email attachments in a sandbox before delivery. Also covers SharePoint, OneDrive, and Teams file scanning.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/safe-attachments-about" },
+  { num:19, sym:"APH",  name:"Advanced Anti-Phishing",       group:"mdo", tier:"MDO_P1", row:3, col:4,
+    desc:"ML-based impersonation protection for users and domains, mailbox intelligence, spoof intelligence, and first-contact safety tips.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/anti-phishing-policies-about" },
+  { num:20, sym:"RTR",  name:"Real-Time Reports",            group:"mdo", tier:"MDO_P1", row:3, col:5,
+    desc:"Real-time detection reports for email flow, threat types, and delivery status. Stepping stone before Threat Explorer.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/reports-defender-for-office-365" },
+  { num:21, sym:"TMQ",  name:"Teams Quarantine",             group:"mdo", tier:"MDO_P1", row:3, col:6,
+    desc:"Quarantine and admin review of malicious Teams messages. Teams Message Entity Panel for in-context investigation.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/quarantine-admin-manage-messages-files" },
+  { num:22, sym:"TEX",  name:"Threat Explorer",              group:"mdo", tier:"MDO_P2", row:3, col:7,
+    desc:"Interactive threat hunting tool for email. Query delivery actions, threat types, sender info, and URLs across your email environment.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/threat-explorer-real-time-detections-about" },
+  { num:23, sym:"AST",  name:"Attack Sim Training",          group:"mdo", tier:"MDO_P2", row:3, col:8,
+    desc:"Phishing simulation and security awareness training platform. Includes payload library, training assignments, and reporting.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/attack-simulation-training-get-started" },
+  { num:24, sym:"AIE",  name:"AIR for Email",                group:"mdo", tier:"MDO_P2", row:3, col:9,
+    desc:"Automated Investigation & Response for email threats. Automatically scopes phishing campaigns and clusters related emails.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/air-examples" },
+  { num:25, sym:"CUD",  name:"Compromised User Detection",   group:"mdo", tier:"MDO_P2", row:3, col:10,
+    desc:"Detects and responds to compromised user accounts identified through anomalous email sending patterns.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/address-compromised-users-quickly" },
+  { num:26, sym:"CVW",  name:"Campaign Views",               group:"mdo", tier:"MDO_P2", row:3, col:11,
+    desc:"Correlates related phishing and malware emails into campaigns. Provides attacker infrastructure, timing, and impacted user views.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/campaigns" },
+  { num:27, sym:"TTK",  name:"Threat Trackers",              group:"mdo", tier:"MDO_P2", row:3, col:12,
+    desc:"Saved queries and noteworthy threat tracking widgets in Threat Explorer. Tracks evolving campaigns relevant to your org.",
+    docsUrl:"https://learn.microsoft.com/defender-office-365/threat-trackers" },
+
+  // ── MDI row ──────────────────────────────────────────────────────────────────
+  { num:28, sym:"MDI",  name:"Defender for Identity",        group:"mdi", tier:"MDI",    row:4, col:1,
+    desc:"ITDR for on-prem Active Directory and hybrid environments. Detects lateral movement, credential attacks, and AD reconnaissance.",
+    docsUrl:"https://learn.microsoft.com/defender-for-identity/what-is" },
+  { num:29, sym:"EIP",  name:"Entra ID Protection",          group:"mdi", tier:"SUITE",  row:4, col:2,
+    desc:"Risk-based Conditional Access signals. User and sign-in risk detection, risky users report, and token protection.",
+    docsUrl:"https://learn.microsoft.com/entra/id-protection/overview-identity-protection" },
+  { num:30, sym:"PIM",  name:"Privileged Identity Mgmt",     group:"mdi", tier:"SUITE",  row:4, col:3,
+    desc:"JIT access to privileged roles in Entra and Azure. Approval workflows, access reviews, and PIM alerts. Part of Entra P2 step-up in Defender Suite.",
+    docsUrl:"https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure" },
+  { num:31, sym:"RCA",  name:"Risk-Based Cond. Access",      group:"mdi", tier:"SUITE",  row:4, col:4,
+    desc:"Conditional Access policies that respond dynamically to sign-in and user risk signals from Entra ID Protection.",
+    docsUrl:"https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-conditions#sign-in-risk" },
+  { num:32, sym:"ACR",  name:"Access Reviews",               group:"mdi", tier:"SUITE",  row:4, col:5,
+    desc:"Periodic review of user and guest access to groups, apps, and privileged roles. Part of Entra ID Governance via Defender Suite step-up.",
+    docsUrl:"https://learn.microsoft.com/entra/id-governance/access-reviews-overview" },
+
+  // ── MDA row ──────────────────────────────────────────────────────────────────
+  { num:33, sym:"CAD",  name:"Cloud App Discovery",          group:"mda", tier:"MDA",    row:5, col:1,
+    desc:"Shadow IT discovery via endpoint/proxy telemetry. Catalogues cloud apps in use, risk scores, and usage patterns.",
+    docsUrl:"https://learn.microsoft.com/defender-cloud-apps/set-up-cloud-discovery" },
+  { num:34, sym:"CAP",  name:"Cloud App Policies",           group:"mda", tier:"MDA",    row:5, col:2,
+    desc:"Policy engine for controlling cloud app usage. Activity policies, anomaly detection, and session policies.",
+    docsUrl:"https://learn.microsoft.com/defender-cloud-apps/control-cloud-apps-with-policies" },
+  { num:35, sym:"CAC",  name:"Cond. Access App Control",     group:"mda", tier:"MDA",    row:5, col:3,
+    desc:"Inline session proxy for real-time monitoring and control of cloud app sessions. Works with Entra ID Conditional Access.",
+    docsUrl:"https://learn.microsoft.com/defender-cloud-apps/proxy-intro-aad" },
+  { num:36, sym:"SSP",  name:"SSPM",                         group:"mda", tier:"MDA",    row:5, col:4,
+    desc:"SaaS Security Posture Management. Assesses misconfigurations across connected SaaS apps against security benchmarks.",
+    docsUrl:"https://learn.microsoft.com/defender-cloud-apps/posture-overview" },
+  { num:37, sym:"UBA",  name:"UEBA",                         group:"mda", tier:"MDA",    row:5, col:5,
+    desc:"User & Entity Behaviour Analytics. Baselines normal activity and surfaces anomalous behaviour across cloud apps.",
+    docsUrl:"https://learn.microsoft.com/defender-cloud-apps/tutorial-suspicious-activity" },
+  { num:38, sym:"AGV",  name:"App Governance",               group:"mda", tier:"MDA",    row:5, col:6,
+    desc:"OAuth app visibility and control. Detects over-permissioned and malicious apps, enforces app policies, and generates insights.",
+    docsUrl:"https://learn.microsoft.com/defender-cloud-apps/app-governance-manage-app-governance" },
+  { num:39, sym:"O365",  name:"O365 Cloud App Security",     group:"mda", tier:"MDO_P1", row:5, col:7,
+    desc:"Subset of MDA capabilities scoped to Microsoft 365 apps only. Included in Office 365 E5 without full MDA licence.",
+    docsUrl:"https://learn.microsoft.com/defender-cloud-apps/editions-cloud-app-security-o365" },
+  { num:40, sym:"ILP",  name:"Info Protection Policies",     group:"mda", tier:"MDA",    row:5, col:8,
+    desc:"DLP-style policies that apply information protection controls to cloud apps, integrating with Microsoft Purview sensitivity labels.",
+    docsUrl:"https://learn.microsoft.com/defender-cloud-apps/tutorial-dlp" },
+
+  // ── DVM row ──────────────────────────────────────────────────────────────────
+  { num:41, sym:"DDV",  name:"Device Discovery",             group:"dvm", tier:"DVM_CORE", row:6, col:1,
+    desc:"Agentless discovery of unmanaged devices on the network using MDE-enrolled endpoints as sensors. Populates device inventory.",
+    docsUrl:"https://learn.microsoft.com/defender-endpoint/device-discovery" },
+  { num:42, sym:"VAS",  name:"Vulnerability Assessment",     group:"dvm", tier:"DVM_CORE", row:6, col:2,
+    desc:"Continuous CVE discovery across software, OS, and configurations on enrolled devices. No scan windows required.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-weaknesses" },
+  { num:43, sym:"RBP",  name:"Risk-Based Prioritisation",    group:"dvm", tier:"DVM_CORE", row:6, col:3,
+    desc:"Prioritises vulnerabilities by exposure probability, exploit availability, and business context — not just CVSS score.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-security-recommendation" },
+  { num:44, sym:"RMT",  name:"Remediation Tracking",         group:"dvm", tier:"DVM_CORE", row:6, col:4,
+    desc:"Raises remediation tasks directly to Intune or ServiceNow. Tracks fix progress against exposure score impact.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-remediation" },
+  { num:45, sym:"SWI",  name:"Software Usage Insights",      group:"dvm", tier:"DVM_CORE", row:6, col:5,
+    desc:"Software inventory enriched with usage data. Identify rarely-used apps that carry risk to prioritise removal.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-usage-insights" },
+  { num:46, sym:"CAF",  name:"Config Assessment",            group:"dvm", tier:"DVM_CORE", row:6, col:6,
+    desc:"Maps device misconfigurations to security benchmarks. Integrated with Secure Score for devices.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-microsoft-secure-score-devices" },
+  { num:47, sym:"BEX",  name:"Browser Ext. Assessment",      group:"dvm", tier:"DVM_CORE", row:6, col:7,
+    desc:"Inventories browser extensions across the estate and flags risky or excessive-permission extensions.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-browser-extensions" },
+  { num:48, sym:"BVA",  name:"Block Vuln. Applications",     group:"dvm", tier:"DVM_PREM", row:6, col:8,
+    desc:"Remediation action to block vulnerable application versions at the OS level whilst a patch is pending.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-block-vuln-apps" },
+  { num:49, sym:"SBA",  name:"Security Baselines Assess.",   group:"dvm", tier:"DVM_PREM", row:6, col:9,
+    desc:"Assesses device configuration against CIS benchmarks and DISA STIGs. Premium DVM capability.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-security-baselines" },
+  { num:50, sym:"DCA",  name:"Digital Cert. Assessment",     group:"dvm", tier:"DVM_PREM", row:6, col:10,
+    desc:"Certificate inventory across enrolled devices. Surfaces expired, weak, or misconfigured certificates.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-certificate-inventory" },
+  { num:51, sym:"HFW",  name:"Hardware & Firmware",          group:"dvm", tier:"DVM_PREM", row:6, col:11,
+    desc:"Firmware and hardware component inventory with CVE mapping. Surfaces BIOS/UEFI vulnerabilities.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-hardware-and-firmware" },
+  { num:52, sym:"NSA",  name:"Network Share Analysis",       group:"dvm", tier:"DVM_PREM", row:6, col:12,
+    desc:"Identifies overly-permissive network shares that could facilitate lateral movement or data exfiltration.",
+    docsUrl:"https://learn.microsoft.com/defender-vulnerability-management/tvm-network-share-assessment" },
+
+  // ── XDR Platform row ─────────────────────────────────────────────────────────
+  { num:53, sym:"INC",  name:"XDR Incidents",                group:"xdr", tier:"MDE_P2", row:7, col:1,
+    desc:"Correlated incident queue across all Defender workloads. Unified triage, RBAC assignment, and automated grouping.",
+    docsUrl:"https://learn.microsoft.com/defender-xdr/incidents-overview" },
+  { num:54, sym:"ATD",  name:"Attack Disruption",            group:"xdr", tier:"SUITE",  row:7, col:2,
+    desc:"Autonomous, near-real-time containment of active attacks. Isolates users and devices mid-attack without analyst intervention.",
+    docsUrl:"https://learn.microsoft.com/defender-xdr/automatic-attack-disruption" },
+  { num:55, sym:"EXP",  name:"Exposure Management",          group:"xdr", tier:"SUITE",  row:7, col:3,
+    desc:"Unified attack surface visibility. Initiatives, critical asset management, attack path analysis, and external exposure scoring.",
+    docsUrl:"https://learn.microsoft.com/security-exposure-management/microsoft-security-exposure-management" },
+  { num:56, sym:"DCP",  name:"Deception",                    group:"xdr", tier:"SUITE",  row:7, col:4,
+    desc:"High-fidelity deception capabilities. Deploy honeytokens and lure devices to detect lateral movement with near-zero false-positives.",
+    docsUrl:"https://learn.microsoft.com/defender-xdr/deception-overview" },
+  { num:57, sym:"SEN",  name:"Sentinel Benefit",             group:"xdr", tier:"SUITE",  row:7, col:5,
+    desc:"50% data ingestion cost reduction for Microsoft Sentinel when using Defender Suite. Applies to M365 data types.",
+    docsUrl:"https://azure.microsoft.com/offers/sentinel-microsoft-365-offer/" },
+  { num:58, sym:"IoT",  name:"Defender for IoT (eIoT)",      group:"xdr", tier:"SUITE",  row:7, col:6,
+    desc:"Enterprise IoT device discovery and monitoring. 5-device entitlement included in Defender Suite. Surfaces IoT/OT risk in XDR.",
+    docsUrl:"https://learn.microsoft.com/azure/defender-for-iot/organizations/concept-enterprise" },
+];
+
+const TIER_ORDER = ["EOP","MDB","MDE_P1","MDO_P1","MDE_P2","MDO_P2","MDI","MDA","DVM_CORE","DVM_PREM","SUITE"];
+
+function DefenderPeriodicTable() {
+  const [selected, setSelected] = useState(null);
+  const [activeTiers, setActiveTiers] = useState(new Set());
+  const [activeGroups, setActiveGroups] = useState(new Set());
+
+  const toggleTier = (tier) => {
+    setActiveTiers(prev => {
+      const n = new Set(prev);
+      n.has(tier) ? n.delete(tier) : n.add(tier);
+      return n;
+    });
+  };
+
+  const toggleGroup = (group) => {
+    setActiveGroups(prev => {
+      const n = new Set(prev);
+      n.has(group) ? n.delete(group) : n.add(group);
+      return n;
+    });
+  };
+
+  const isHighlighted = (el) => {
+    if (activeTiers.size === 0 && activeGroups.size === 0) return true;
+    const tierMatch = activeTiers.size === 0 || activeTiers.has(el.tier);
+    const groupMatch = activeGroups.size === 0 || activeGroups.has(el.group);
+    return tierMatch && groupMatch;
+  };
+
+  const rows = useMemo(() => {
+    const r = {};
+    ELEMENTS.forEach(el => {
+      if (!r[el.row]) r[el.row] = [];
+      r[el.row].push(el);
+    });
+    return r;
+  }, []);
+
+  const ROW_LABELS = {
+    1: "MDE P1",
+    2: "MDE P2",
+    3: "MDO",
+    4: "MDI",
+    5: "MDA",
+    6: "DVM",
+    7: "XDR",
+  };
+
+  const tc = TIERS;
+  const gc = GROUPS;
+  const active = selected;
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "#0A0D14",
+      color: "#E2E8F0",
+      fontFamily: "'IBM Plex Mono', 'Fira Code', monospace",
+      padding: "28px 20px 40px",
+      userSelect: "none",
+    }}>
+
+      {/* ── Header ── */}
+      <div style={{ textAlign: "center", marginBottom: "28px" }}>
+        <div style={{
+          fontSize: "clamp(16px, 3vw, 30px)",
+          fontWeight: 800,
+          letterSpacing: "-0.02em",
+          fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+          background: "linear-gradient(90deg, #1573E6 0%, #27A49D 50%, #4EB672 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+        }}>
+          PERIODIC TABLE OF MICROSOFT DEFENDER
+        </div>
+        <div style={{ fontSize: "11px", color: "#334155", marginTop: "5px", letterSpacing: "0.12em" }}>
+          DATA SOURCE: M365MAPS.COM BY AARON DINNAGE · {new Date().toLocaleString('en-GB', {month:'long', year:'numeric'}).toUpperCase()}
+        </div>
+      </div>
+
+      {/* ── Group filter row ── */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center", marginBottom: "10px" }}>
+        {Object.entries(gc).map(([key, g]) => {
+          const on = activeGroups.has(key);
+          return (
+            <button key={key} onClick={() => toggleGroup(key)} style={{
+              padding: "4px 12px",
+              borderRadius: "4px",
+              border: `1px solid ${on ? g.color : g.color + "40"}`,
+              background: on ? g.color + "25" : "transparent",
+              color: on ? g.color : g.color + "99",
+              fontSize: "10px",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "all 0.12s",
+            }}>
+              {g.label.toUpperCase()}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Tier filter row ── */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center", marginBottom: "24px", alignItems: "center" }}>
+        <span style={{ fontSize: "9px", color: "#334155", letterSpacing: "0.1em", marginRight: "4px" }}>MIN LICENCE →</span>
+        {TIER_ORDER.map(key => {
+          const t = tc[key];
+          const on = activeTiers.has(key);
+          return (
+            <button key={key} onClick={() => toggleTier(key)} style={{
+              padding: "3px 10px",
+              borderRadius: "3px",
+              border: `1px solid ${on ? t.color : t.color + "35"}`,
+              background: on ? t.color + "20" : "transparent",
+              color: on ? t.color : t.color + "70",
+              fontSize: "10px",
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "all 0.12s",
+            }}>
+              {t.label.toUpperCase()}
+            </button>
+          );
+        })}
+        {(activeTiers.size > 0 || activeGroups.size > 0) && (
+          <button onClick={() => { setActiveTiers(new Set()); setActiveGroups(new Set()); }} style={{
+            padding: "3px 10px",
+            borderRadius: "3px",
+            border: "1px solid #EF444460",
+            background: "transparent",
+            color: "#EF4444",
+            fontSize: "10px",
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            letterSpacing: "0.04em",
+          }}>
+            ✕ CLEAR
+          </button>
+        )}
+      </div>
+
+      {/* ── Grid ── */}
+      <div style={{ overflowX: "auto", paddingBottom: "8px" }}>
+        <div style={{ minWidth: "900px", maxWidth: "1200px", margin: "0 auto" }}>
+          {Object.entries(rows).map(([rowNum, elements]) => (
+            <div key={rowNum} style={{ display: "flex", gap: "5px", marginBottom: "5px", alignItems: "stretch" }}>
+              {/* Row label */}
+              <div style={{
+                width: "38px",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                paddingRight: "6px",
+                fontSize: "9px",
+                fontWeight: 700,
+                color: "#1E293B",
+                letterSpacing: "0.08em",
+              }}>
+                {ROW_LABELS[+rowNum]}
+              </div>
+
+              {[...elements].sort((a, b) => a.col - b.col).map(el => {
+                const g = gc[el.group];
+                const t = tc[el.tier];
+                const lit = isHighlighted(el);
+                const isSel = selected?.sym === el.sym;
+
+                return (
+                  <div
+                    key={el.sym}
+                    onClick={() => setSelected(isSel ? null : el)}
+                    title={el.name}
+                    style={{
+                      width: "clamp(58px, 7.5vw, 88px)",
+                      height: "clamp(64px, 8.5vw, 96px)",
+                      flexShrink: 0,
+                      background: isSel
+                        ? `linear-gradient(135deg, ${g.color}28, ${g.color}10)`
+                        : lit ? "#141923" : "#0C1018",
+                      border: isSel
+                        ? `2px solid ${g.color}`
+                        : lit
+                          ? `1px solid ${g.color}35`
+                          : "1px solid #111827",
+                      borderRadius: "6px",
+                      padding: "5px 4px 4px",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      position: "relative",
+                      opacity: lit ? 1 : 0.18,
+                      transition: "all 0.12s ease",
+                      transform: isSel ? "scale(1.06)" : "scale(1)",
+                      boxShadow: isSel ? `0 0 14px ${g.color}35` : "none",
+                    }}
+                  >
+                    {/* Atomic num */}
+                    <div style={{ fontSize: "8px", color: "#1E293B", fontWeight: 700 }}>
+                      {String(el.num).padStart(2, "0")}
+                    </div>
+
+                    {/* Symbol */}
+                    <div style={{
+                      textAlign: "center",
+                      fontSize: "clamp(12px, 1.6vw, 18px)",
+                      fontWeight: 900,
+                      color: isSel ? g.color : lit ? "#C8D8E8" : "#2A3040",
+                      fontFamily: "'IBM Plex Sans', sans-serif",
+                      letterSpacing: "-0.02em",
+                      lineHeight: 1,
+                    }}>
+                      {el.sym}
+                    </div>
+
+                    {/* Name */}
+                    <div style={{
+                      textAlign: "center",
+                      fontSize: "clamp(5px, 0.6vw, 7px)",
+                      color: lit ? "#475569" : "#1E293B",
+                      lineHeight: 1.3,
+                      overflow: "hidden",
+                      maxHeight: "22px",
+                    }}>
+                      {el.name}
+                    </div>
+
+                    {/* Tier */}
+                    <div style={{
+                      textAlign: "center",
+                      fontSize: "6px",
+                      fontWeight: 800,
+                      color: lit ? t.color : t.color + "40",
+                      letterSpacing: "0.03em",
+                    }}>
+                      {t.label}
+                    </div>
+
+                    {/* Group colour bar */}
+                    <div style={{
+                      position: "absolute",
+                      bottom: 0, left: 0, right: 0,
+                      height: "2.5px",
+                      background: g.color,
+                      borderRadius: "0 0 5px 5px",
+                      opacity: lit ? (isSel ? 1 : 0.5) : 0.1,
+                    }} />
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Detail panel ── */}
+      <div style={{
+        maxWidth: "1200px",
+        margin: "20px auto 0",
+        minHeight: "110px",
+        borderRadius: "10px",
+        background: active ? "#111827" : "transparent",
+        border: active
+          ? `1px solid ${GROUPS[active.group].color}35`
+          : "1px solid transparent",
+        transition: "background 0.15s, border 0.15s",
+        overflow: "hidden",
+      }}>
+        {active ? (() => {
+          const g = gc[active.group];
+          const t = tc[active.tier];
+          return (
+            <div style={{ padding: "20px 24px", display: "flex", gap: "24px", alignItems: "flex-start" }}>
+              {/* Symbol block */}
+              <div style={{ flexShrink: 0, textAlign: "center", width: "72px" }}>
+                <div style={{
+                  fontSize: "36px", fontWeight: 900,
+                  color: g.color,
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  lineHeight: 1,
+                }}>
+                  {active.sym}
+                </div>
+                <div style={{ fontSize: "8px", color: "#1E293B", marginTop: "3px" }}>
+                  #{String(active.num).padStart(2, "0")}
+                </div>
+                <div style={{
+                  marginTop: "8px",
+                  display: "inline-block",
+                  padding: "3px 8px",
+                  borderRadius: "3px",
+                  background: t.color + "18",
+                  border: `1px solid ${t.color}50`,
+                  fontSize: "9px",
+                  fontWeight: 800,
+                  color: t.color,
+                  letterSpacing: "0.04em",
+                }}>
+                  {t.label}
+                </div>
+              </div>
+
+              <div style={{ width: "1px", alignSelf: "stretch", background: g.color + "25" }} />
+
+              {/* Text */}
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontSize: "16px", fontWeight: 700,
+                  color: "#E2E8F0",
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                  marginBottom: "3px",
+                }}>
+                  {active.name}
+                </div>
+                <div style={{
+                  fontSize: "10px", color: g.color,
+                  letterSpacing: "0.08em", marginBottom: "10px",
+                  fontWeight: 700, textTransform: "uppercase",
+                }}>
+                  {g.label} · {t.desc}
+                </div>
+                <div style={{
+                  fontSize: "13px", color: "#8094A8",
+                  lineHeight: 1.7,
+                  fontFamily: "'IBM Plex Sans', sans-serif",
+                }}>
+                  {active.desc}
+                </div>
+                <a
+                  href={active.docsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    display: "inline-block",
+                    marginTop: "10px",
+                    fontSize: "10px",
+                    color: "#1573E6",
+                    textDecoration: "none",
+                    borderBottom: "1px solid #1573E630",
+                    letterSpacing: "0.04em",
+                    fontWeight: 600,
+                  }}
+                >
+                  DOCS ↗
+                </a>
+              </div>
+
+              <button onClick={() => setSelected(null)} style={{
+                flexShrink: 0, fontSize: "10px", color: "#334155",
+                cursor: "pointer", padding: "3px 8px",
+                borderRadius: "3px", border: "1px solid #1E293B",
+                background: "transparent", fontFamily: "inherit",
+                letterSpacing: "0.04em",
+              }}>
+                ✕
+              </button>
+            </div>
+          );
+        })() : (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            height: "110px", color: "#1A2234", fontSize: "11px", letterSpacing: "0.1em",
+          }}>
+            CLICK AN ELEMENT TO INSPECT · FILTER BY LICENCE TIER OR PRODUCT GROUP
+          </div>
+        )}
+      </div>
+
+      {/* ── Group legend ── */}
+      <div style={{ maxWidth: "1200px", margin: "16px auto 0", display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+        <span style={{ fontSize: "9px", color: "#1E293B", letterSpacing: "0.1em", marginRight: "4px" }}>GROUP →</span>
+        {Object.entries(gc).map(([key, g]) => (
+          <div key={key} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "9px", color: g.color + "90" }}>
+            <div style={{ width: "6px", height: "6px", borderRadius: "1px", background: g.color, opacity: 0.7 }} />
+            {g.label}
+          </div>
+        ))}
+      </div>
+
+      {/* ── Footer ── */}
+      <div style={{ textAlign: "center", marginTop: "24px", fontSize: "9px", color: "#1A2234", letterSpacing: "0.08em" }}>
+        NCSutcliffe · DATA: M365MAPS.COM (AARON DINNAGE) · {new Date().getFullYear()}
+      </div>
+    </div>
+  );
+}
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<DefenderPeriodicTable />);
+  </script>
+</body>
+</html>
