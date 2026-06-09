@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Name · Technical Product Owner, Modern Workplace Security</title>
+  <meta name="description" content="Technical Product Owner specialising in Microsoft Defender XDR, Microsoft Purview, and enterprise security adoption. CISSP · CCSP · PGDip Advanced Security." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #F2F3F5;
+      --card:     #E9ECEF;
+      --dark:     #2A2E35;
+      --primary:  #1573E6;
+      --teal:     #27A49D;
+      --green:    #4EB672;
+      --muted:    #5A5F68;
+      --border:   rgba(42,46,53,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--dark);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--dark);
+      padding: 14px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav-brand {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--green);
+      letter-spacing: 0.04em;
+    }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 13px;
+      color: rgba(242,243,245,0.65);
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: #F2F3F5; }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--dark);
+      padding: 72px 48px 64px;
+      border-bottom: 3px solid var(--primary);
+    }
+    .hero-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 30px;
+      font-weight: 500;
+      color: #F2F3F5;
+      flex-shrink: 0;
+      border: 3px solid var(--teal);
+    }
+    .hero-name {
+      font-size: 28px;
+      font-weight: 600;
+      color: #F2F3F5;
+      margin-bottom: 6px;
+    }
+    .hero-role {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--teal);
+      margin-bottom: 18px;
+      letter-spacing: 0.02em;
+    }
+    .hero-bio {
+      font-size: 15px;
+      color: rgba(242,243,245,0.72);
+      line-height: 1.7;
+      max-width: 560px;
+      margin-bottom: 22px;
+    }
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+    }
+    .badge-blue  { background: rgba(21,115,230,0.2);  color: #78AEFF; border: 1px solid rgba(21,115,230,0.4); }
+    .badge-teal  { background: rgba(39,164,157,0.2);  color: #5DD4CE; border: 1px solid rgba(39,164,157,0.4); }
+    .badge-green { background: rgba(78,182,114,0.2);  color: var(--green); border: 1px solid rgba(78,182,114,0.4); }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 56px 48px 80px;
+    }
+
+    section { margin-bottom: 64px; }
+
+    .section-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--primary);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .section-heading {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--dark);
+      padding-bottom: 10px;
+      margin-bottom: 28px;
+      border-bottom: 2px solid var(--primary);
+      display: inline-block;
+    }
+
+    /* ── ABOUT ── */
+    .about-body {
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--dark);
+      max-width: 700px;
+      margin-bottom: 14px;
+    }
+    .cred-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .cred-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 16px 18px;
+      border-left: 3px solid var(--primary);
+    }
+    .cred-card.teal  { border-left-color: var(--teal); }
+    .cred-card.green { border-left-color: var(--green); }
+    .cred-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 3px;
+    }
+    .cred-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── PROJECTS ── */
+    .project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .project-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 20px 20px;
+      border: 1px solid var(--border);
+      display: block;
+      transition: border-color 0.15s, transform 0.12s;
+    }
+    .project-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .project-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+    .project-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+    }
+    .project-type {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      background: rgba(42,46,53,0.07);
+      padding: 3px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .project-desc {
+      font-size: 13px;
+      color: #4A4E56;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .project-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .project-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--teal);
+      background: rgba(39,164,157,0.1);
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(39,164,157,0.25);
+    }
+
+    /* ── WRITING ── */
+    .post-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .post-item:first-child { border-top: 1px solid var(--border); }
+    .post-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      min-width: 72px;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+    .post-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 4px;
+      transition: color 0.15s;
+    }
+    .post-item:hover .post-title { color: var(--primary); }
+    .post-pill {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--primary);
+      background: rgba(21,115,230,0.08);
+      border: 1px solid rgba(21,115,230,0.2);
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .post-excerpt {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* ── CONTACT ── */
+    .contact-box {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 32px;
+    }
+    .contact-intro {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      max-width: 480px;
+    }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--dark);
+      transition: border-color 0.15s;
+    }
+    .contact-link:hover { border-color: var(--primary); }
+    .contact-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .ic-blue  { background: rgba(21,115,230,0.12); color: var(--primary); }
+    .ic-teal  { background: rgba(39,164,157,0.12); color: var(--teal); }
+    .ic-dark  { background: rgba(42,46,53,0.1);   color: var(--dark); }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 24px 48px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    footer span { color: var(--green); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      nav    { padding: 12px 20px; }
+      .nav-links { gap: 16px; }
+      .hero  { padding: 48px 20px 40px; }
+      .hero-inner { flex-direction: column; gap: 24px; }
+      main   { padding: 40px 20px 60px; }
+      .cred-grid, .project-grid, .contact-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <span class="nav-brand">~/your-username</span>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#writing">Writing</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="avatar" aria-hidden="true">YN</div>
+      <div>
+        <h1 class="hero-name">Your Name</h1>
+        <p class="hero-role">// Technical Product Owner · Modern Workplace Security</p>
+        <p class="hero-bio">
+          Building frictionless security experiences at enterprise scale. I work across Microsoft Defender XDR, Microsoft Purview, and Intune — bridging the gap between security capability and real-world adoption.
+        </p>
+        <div class="badges">
+          <span class="badge badge-blue">CISSP</span>
+          <span class="badge badge-teal">CCSP</span>
+          <span class="badge badge-green">Microsoft Security</span>
+          <span class="badge badge-blue">PGDip Security &amp; Digital Forensics</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ABOUT -->
+    <section id="about">
+      <p class="section-eyebrow">01 — Background</p>
+      <h2 class="section-heading">About</h2>
+      <p class="about-body">
+        I'm a Technical Product Owner specialising in Modern Workplace Security within a large enterprise environment. My focus is adoption product management — intake, prioritisation, stakeholder alignment, and change communication for Microsoft security feature rollouts. I care about the gap between "it's deployed" and "it's actually working."
+      </p>
+      <p class="about-body">
+        I hold a PGDip in Advanced Security and Digital Forensics and a BSc in Digital Forensics. Outside the day job, I write and create content on security usability and thought leadership across the Microsoft security stack.
+      </p>
+      <div class="cred-grid">
+        <div class="cred-card">
+          <div class="cred-name">CISSP</div>
+          <div class="cred-sub">Certified Information Systems Security Professional</div>
+        </div>
+        <div class="cred-card teal">
+          <div class="cred-name">CCSP</div>
+          <div class="cred-sub">Certified Cloud Security Professional</div>
+        </div>
+        <div class="cred-card green">
+          <div class="cred-name">PGDip · Advanced Security &amp; Digital Forensics</div>
+          <div class="cred-sub">Postgraduate · Computer Science</div>
+        </div>
+        <div class="cred-card teal">
+          <div class="cred-name">BSc · Digital Forensics</div>
+          <div class="cred-sub">Undergraduate · Computer Science</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects">
+      <p class="section-eyebrow">02 — Work</p>
+      <h2 class="section-heading">Featured projects</h2>
+      <div class="project-grid">
+
+        <a class="project-card" href="https://github.com/your-username/ms-roadmap-monitor">
+          <div class="project-top">
+            <span class="project-name">ms-roadmap-monitor</span>
+            <span class="project-type">Markdown / Skills</span>
+          </div>
+          <p class="project-desc">Automated 30-day look-back across Defender XDR, Microsoft Purview, and Intune — structured for enterprise change communication.</p>
+          <div class="project-tags">
+            <span class="project-tag">Defender XDR</span>
+            <span class="project-tag">Purview</span>
+            <span class="project-tag">Intune</span>
+          </div>
+        </a>
+
+        <a class="project-card" href="https://github.com/your-username/security-adoption-kit">
+          <div class="project-top">
+            <span class="project-name">security-adoption-kit</span>
+            <span class="project-type">Templates</span>
+          </div>
+          <p class="project-desc">Stakeholder comms templates, change impact frameworks, and intake tooling for Microsoft security feature rollouts.</p>
+          <div class="project-tags">
+            <span class="project-tag">Change Mgmt</span>
+            <span class="project-tag">Adoption</span>
+          </div>
+        </a>
+
+        <a class="project-card" href="https://github.com/your-username/purview-dlp-playbook">
+          <div class="project-top">
+            <span class="project-name">purview-dlp-playbook</span>
+            <span class="project-type">Documentation</span>
+          </div>
+          <p class="project-desc">A field guide to Microsoft Purview DLP policy design — covering simulation mode, policy tips, and endpoint enforcement without destroying productivity.</p>
+          <div class="project-tags">
+            <span class="project-tag">Purview</span>
+            <span class="project-tag">DLP</span>
+            <span class="project-tag">Compliance</span>
+          </div>
+        </a>
+
+        <a class="project-card" href="https://github.com/your-username/defender-xdr-onboarding">
+          <div class="project-top">
+            <span class="project-name">defender-xdr-onboarding</span>
+            <span class="project-type">Runbooks</span>
+          </div>
+          <p class="project-desc">End-to-end onboarding runbooks for MDE, MDO, MDI, and MDA — built for enterprise POs who need structure, not just documentation links.</p>
+          <div class="project-tags">
+            <span class="project-tag">MDE</span>
+            <span class="project-tag">MDO</span>
+            <span class="project-tag">MDI</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- WRITING -->
+    <section id="writing">
+      <p class="section-eyebrow">03 — Writing</p>
+      <h2 class="section-heading">Latest posts</h2>
+
+      <a class="post-item" href="#">
+        <span class="post-date">Jun 2026</span>
+        <div>
+          <p class="post-title">Why security features fail adoption — and what to do about it <span class="post-pill">Thought leadership</span></p>
+          <p class="post-excerpt">Deployment is table stakes. The hard part is closing the gap between "it's on" and "it's actually doing something."</p>
+        </div>
+      </a>
+
+      <a class="post-item" href="#">
+        <span class="post-date">May 2026</span>
+        <div>
+          <p class="post-title">Microsoft Purview DLP: stop deploying blind <span class="post-pill">Technical</span></p>
+          <p class="post-excerpt">How to use simulation mode properly — and why most organisations skip the step that matters most.</p>
+        </div>
+      </a>
+
+      <a class="post-item" href="#">
+        <span class="post-date">Apr 2026</span>
+        <div>
+          <p class="post-title">Frictionless security isn't a compromise — it's the goal <span class="post-pill">Opinion</span></p>
+          <p class="post-excerpt">The best security control is the one users don't have to think about. Here's how I approach that in enterprise M365.</p>
+        </div>
+      </a>
+
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+      <p class="section-eyebrow">04 — Connect</p>
+      <h2 class="section-heading">Get in touch</h2>
+      <div class="contact-box">
+        <p class="contact-intro">Open to conversations about enterprise security, adoption product management, and the Microsoft 365 security stack.</p>
+        <div class="contact-grid">
+          <a class="contact-link" href="https://linkedin.com/in/your-username" target="_blank" rel="noopener">
+            <div class="contact-icon ic-blue">in</div>
+            LinkedIn
+          </a>
+          <a class="contact-link" href="https://github.com/your-username" target="_blank" rel="noopener">
+            <div class="contact-icon ic-dark">&#128025;</div>
+            GitHub
+          </a>
+          <a class="contact-link" href="https://instagram.com/cyberhackninja" target="_blank" rel="noopener">
+            <div class="contact-icon ic-teal">&#128247;</div>
+            Instagram
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>security-first</span> · user-always · your-username.github.io
+  </footer>
+
+</body>
+</html>
