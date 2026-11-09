@@ -1,0 +1,39 @@
+title: Nathan Sutcliffe
+tagline: Technical Product Owner · Modern Workplace Security
+description: >-
+  Technical Product Owner specialising in Microsoft Defender XDR, Microsoft Purview,
+  and enterprise security adoption. Writing on security, AI and product ownership.
+url: https://ncsutcliffe.github.io
+baseurl: ""
+author: Nathan Sutcliffe
+lang: en_GB
+
+permalink: /blog/:title/
+
+markdown: kramdown
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-feed
+
+social:
+  name: Nathan Sutcliffe
+  links:
+    - https://linkedin.com/in/nathan-sutcliffe
+    - https://github.com/NCSutcliffe
+    - https://instagram.com/nathincyber
+
+series_titles:
+  secure-by-prompt: "Secure by Prompt"
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+
+exclude:
+  - _temp/
+  - README.md
+  - .DS_Store

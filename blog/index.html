@@ -1,0 +1,174 @@
+---
+layout: default
+title: Blog
+description: All posts on security, AI and product ownership, filterable by date, tag and series.
+---
+<header class="hero">
+  <div class="post-header">
+    <p class="post-meta">// all posts</p>
+    <h1 class="post-page-title">Blog</h1>
+  </div>
+</header>
+
+<main>
+  <section class="blog-archive">
+
+    <form class="filters" id="filters" onsubmit="return false">
+      <div class="filter-row">
+        <label class="filter">
+          <span class="filter-label">Series</span>
+          <select id="f-series">
+            <option value="">All posts</option>
+          </select>
+        </label>
+        <label class="filter">
+          <span class="filter-label">Date</span>
+          <select id="f-month">
+            <option value="">Any time</option>
+          </select>
+        </label>
+        <label class="filter">
+          <span class="filter-label">Order</span>
+          <select id="f-order">
+            <option value="desc">Newest first</option>
+            <option value="asc">Oldest first</option>
+          </select>
+        </label>
+      </div>
+      <div class="filter">
+        <span class="filter-label">Tags</span>
+        <div class="tag-chips" id="f-tags" role="group" aria-label="Filter by tag"></div>
+      </div>
+      <div class="filter-status">
+        <p id="result-count" aria-live="polite"></p>
+        <button type="button" class="clear-filters" id="f-clear" hidden>Clear filters</button>
+      </div>
+    </form>
+
+    <div id="post-list">
+      {% for post in site.posts %}
+      {% assign series_name = site.series_titles[post.series] | default: post.series %}
+      <article class="post-item archive-item"
+               data-date="{{ post.date | date: '%Y-%m-%d' }}"
+               data-month="{{ post.date | date: '%Y-%m' }}"
+               data-series="{{ post.series }}"
+               data-series-name="{{ series_name }}"
+               data-tags="{{ post.tags | join: '|' }}">
+        <span class="post-date">{{ post.date | date: "%d %b %Y" }}</span>
+        <div>
+          <a class="post-title" href="{{ post.url | relative_url }}">{{ post.title }}</a>
+          {% if post.series %}<span class="post-pill">{{ series_name }}{% if post.part %} · Part {{ post.part }}{% endif %}</span>{% endif %}
+          <p class="post-excerpt">{{ post.description | default: post.excerpt | strip_html | truncatewords: 30 }}</p>
+          {% if post.tags.size > 0 %}
+          <div class="archive-tags">{% for tag in post.tags %}<span>#{{ tag }}</span>{% endfor %}</div>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="post-excerpt" id="no-results" hidden>No posts match those filters.</p>
+
+  </section>
+</main>
+
+<script>
+(function () {
+  var list = document.getElementById('post-list');
+  var items = Array.prototype.slice.call(list.querySelectorAll('.archive-item'));
+  var seriesSel = document.getElementById('f-series');
+  var monthSel = document.getElementById('f-month');
+  var orderSel = document.getElementById('f-order');
+  var tagBox = document.getElementById('f-tags');
+  var countEl = document.getElementById('result-count');
+  var noResults = document.getElementById('no-results');
+  var clearBtn = document.getElementById('f-clear');
+  var activeTags = [];
+
+  function tagsOf(el) { return el.dataset.tags ? el.dataset.tags.split('|') : []; }
+
+  // Build filter options from the posts themselves
+  var series = {}, months = {}, tags = {};
+  items.forEach(function (el) {
+    if (el.dataset.series) series[el.dataset.series] = el.dataset.seriesName;
+    months[el.dataset.month] = true;
+    tagsOf(el).forEach(function (t) { tags[t] = (tags[t] || 0) + 1; });
+  });
+  Object.keys(series).sort().forEach(function (k) {
+    seriesSel.add(new Option(series[k], k));
+  });
+  Object.keys(months).sort().reverse().forEach(function (m) {
+    var d = new Date(m + '-01T00:00:00');
+    monthSel.add(new Option(d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }), m));
+  });
+  Object.keys(tags).sort().forEach(function (t) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tag-chip';
+    b.dataset.tag = t;
+    b.setAttribute('aria-pressed', 'false');
+    b.textContent = t + ' (' + tags[t] + ')';
+    b.addEventListener('click', function () {
+      var i = activeTags.indexOf(t);
+      if (i === -1) activeTags.push(t); else activeTags.splice(i, 1);
+      apply(true);
+    });
+    tagBox.appendChild(b);
+  });
+
+  // Read initial state from the URL, e.g. /blog/?tag=prompting&series=secure-by-prompt
+  var params = new URLSearchParams(location.search);
+  if (params.get('series')) seriesSel.value = params.get('series');
+  if (params.get('month')) monthSel.value = params.get('month');
+  if (params.get('order')) orderSel.value = params.get('order');
+  params.getAll('tag').forEach(function (t) { if (tags[t]) activeTags.push(t); });
+
+  function apply(updateUrl) {
+    var s = seriesSel.value, m = monthSel.value, order = orderSel.value;
+    // Series reads best in part order, oldest first, unless the reader chooses otherwise
+    var shown = 0;
+    items.forEach(function (el) {
+      var ok = (!s || el.dataset.series === s) &&
+               (!m || el.dataset.month === m) &&
+               activeTags.every(function (t) { return tagsOf(el).indexOf(t) !== -1; });
+      el.hidden = !ok;
+      if (ok) shown++;
+    });
+    items.slice().sort(function (a, b) {
+      return order === 'asc' ? a.dataset.date.localeCompare(b.dataset.date)
+                             : b.dataset.date.localeCompare(a.dataset.date);
+    }).forEach(function (el) { list.appendChild(el); });
+
+    Array.prototype.forEach.call(tagBox.children, function (b) {
+      b.setAttribute('aria-pressed', activeTags.indexOf(b.dataset.tag) !== -1 ? 'true' : 'false');
+    });
+    countEl.textContent = shown + (shown === 1 ? ' post' : ' posts');
+    noResults.hidden = shown !== 0;
+    var filtered = s || m || activeTags.length || order !== 'desc';
+    clearBtn.hidden = !filtered;
+
+    if (updateUrl) {
+      var p = new URLSearchParams();
+      if (s) p.set('series', s);
+      if (m) p.set('month', m);
+      if (order !== 'desc') p.set('order', order);
+      activeTags.forEach(function (t) { p.append('tag', t); });
+      var q = p.toString();
+      history.replaceState(null, '', location.pathname + (q ? '?' + q : ''));
+    }
+  }
+
+  seriesSel.addEventListener('change', function () {
+    // Picking a series switches to reading order by default
+    if (seriesSel.value && orderSel.value === 'desc' && !params.get('order')) orderSel.value = 'asc';
+    apply(true);
+  });
+  monthSel.addEventListener('change', function () { apply(true); });
+  orderSel.addEventListener('change', function () { apply(true); });
+  clearBtn.addEventListener('click', function () {
+    seriesSel.value = ''; monthSel.value = ''; orderSel.value = 'desc'; activeTags = [];
+    apply(true);
+  });
+
+  apply(false);
+})();
+</script>
